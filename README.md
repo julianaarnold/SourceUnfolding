@@ -1,6 +1,6 @@
 # SourceUnfolding
 Python implementation of SourceUnfolding.
-In depth assignment for the AlgorithmicFolding Class at HPI, WS2023/24.
+In-depth assignment for the AlgorithmicFolding class at HPI Potsdam, WS2023/24.
 
 
 ### Setup
