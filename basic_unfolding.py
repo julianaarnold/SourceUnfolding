@@ -6,6 +6,11 @@ class BasicUnfolding:
         self.faces = faces
         self.faces_to_separate = []
 
+        self.execute()
+
+    def execute(self):
+        self.unfold()
+
     def unfold(self):
         polygons = []  # resulting polygons, represented as lists of 2D coordinates
 

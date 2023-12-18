@@ -144,6 +144,41 @@ def get_unfolding_transform(source_face_id, face_to_unfold_id, faces, vertices):
 
     return offset, rotation_matrix
 
+def create_unfolding_transform_matrix(offset, rotation_matrix):
+    # get the matrix that computes (p - offset) * rotation_matrix + offset as 4x4 matrix
+
+    transform_matrix = np.eye(4)
+    transform_matrix[:3, :3] = rotation_matrix
+    transform_matrix[:3, 3] = offset + np.dot(rotation_matrix, -offset)
+    
+    return transform_matrix
+
+def apply_4x4_matrix_to_3d_point(matrix, point):
+    # apply 4x4 matrix to 3d points
+    point = np.append(point, 1)
+    point = np.dot(matrix, point)
+    point = point[:3]
+    return point
+
+
+def get_line_intersection(line1, line2):
+    print(line1, line2)
+    a1 = np.array(line1[0])
+    a2 = np.array(line1[1])
+    b1 = np.array(line2[0])
+    b2 = np.array(line2[1])
+
+    # see https://stackoverflow.com/a/42727584
+    s = np.vstack([a1,a2,b1,b2])        # s for stacked
+    h = np.hstack((s, np.ones((4, 1)))) # h for homogeneous
+    l1 = np.cross(h[0], h[1])           # get first line
+    l2 = np.cross(h[2], h[3])           # get second line
+    x, y, z = np.cross(l1, l2)          # point of intersection
+    if z == 0:                          # lines are parallel
+        return (float('inf'), float('inf'))
+    return np.array([x/z, y/z])
+
+
 def unfold(vertices, faces, faces_to_separate=[]):
     polygons = []  # resulting polygons, represented as lists of 2D coordinates
 
