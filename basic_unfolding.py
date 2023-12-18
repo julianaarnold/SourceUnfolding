@@ -2,8 +2,10 @@ from unfolding_utils import *
 
 class BasicUnfolding:
     def __init__(self, vertices, faces):
-        self.vertices = vertices
-        self.faces = faces
+        self.original_vertices = vertices
+        self.original_faces = faces
+        self.vertices = vertices[:]
+        self.faces = faces[:]
         self.faces_to_separate = []
 
         self.execute()
