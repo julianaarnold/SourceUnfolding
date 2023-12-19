@@ -130,6 +130,7 @@ def dihedral_angle(vertices, faces, face_a_id, face_b_id):
 
 def delete_cut_line_edges(graph, faces_to_separate):
   for pair in faces_to_separate:
+    assert graph.has_edge(pair[0], pair[1])
     graph.remove_edge(pair[0], pair[1])
 
   return graph
