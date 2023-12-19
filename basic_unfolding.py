@@ -6,7 +6,7 @@ class BasicUnfolding:
         self.original_faces = faces
         self.vertices = vertices[:]
         self.faces = faces[:]
-        self.faces_to_separate = []
+        self.faces_to_separate = {}
 
         self.execute()
 
@@ -14,10 +14,11 @@ class BasicUnfolding:
         self.unfold()
 
     def unfold(self):
-        polygons = []  # resulting polygons, represented as lists of 2D coordinates
+        self.unfolded_polygons = {}  # resulting polygons, represented as lists of 2D coordinates
 
         source_face_id = 0
         mesh_graph = graph_from_mesh(self.faces)
+
         mesh_graph = delete_cut_line_edges(mesh_graph, self.faces_to_separate)
         parent_dict = nx.dfs_predecessors(mesh_graph, source=source_face_id)
         parent_dict[source_face_id] = None  # add the source face, as networkX is not doing this by default
@@ -27,6 +28,7 @@ class BasicUnfolding:
         projection_to_2d = get_2d_projection(source_face_normal)
 
         for face_id, parent_face_id in parent_dict.items():
+            print("face_id: ", face_id)
             # retrieve the coordinates of current face
             face_coordinates = [self.vertices[vertex_id] for vertex_id in self.faces[face_id]]
 
@@ -54,6 +56,4 @@ class BasicUnfolding:
             for i in range(3):
                 face_coordinates[i] = projection_to_2d.dot(face_coordinates[i])  # TODO apply 2D projection to each vertex
 
-            polygons.append(face_coordinates)
-
-        self.unfolded_polygons = polygons
+            self.unfolded_polygons[face_id] = face_coordinates

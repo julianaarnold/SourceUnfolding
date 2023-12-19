@@ -13,4 +13,7 @@ vertices, faces = igl.remove_duplicates(raw_vertices, raw_faces, 0.00001)
 
 unfolding = StarUnfolding(vertices, faces)
 
-plot_polygons(unfolding.unfolded_polygons)
+plot_polygons(unfolding.unfolded_polygons.values())
+plot_cut_edges(unfolding.unfolded_polygons, unfolding.faces, unfolding.faces_to_separate)
+
+plt.show()
