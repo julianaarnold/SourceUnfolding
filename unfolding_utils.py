@@ -249,7 +249,6 @@ def apply_4x4_matrix_to_3d_point(matrix, point):
 
 
 def get_line_intersection(line1, line2):
-    print(line1, line2)
     a1 = np.array(line1[0])
     a2 = np.array(line1[1])
     b1 = np.array(line2[0])

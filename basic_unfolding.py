@@ -28,7 +28,6 @@ class BasicUnfolding:
         projection_to_2d = get_2d_projection(source_face_normal)
 
         for face_id, parent_face_id in parent_dict.items():
-            print("face_id: ", face_id)
             # retrieve the coordinates of current face
             face_coordinates = [self.vertices[vertex_id] for vertex_id in self.faces[face_id]]
 
