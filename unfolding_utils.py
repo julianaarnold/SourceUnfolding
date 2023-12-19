@@ -35,6 +35,92 @@ def find_faces_shared_by_cut_edge(cut_edge, faces):
 
   return np.array(shared_faces)
 
+def is_point_inside_face(vertices, face, point):
+    # check if point is on the same plane as the face
+   
+    # get normal of face
+    normal = np.cross(vertices[face[1]] - vertices[face[0]], vertices[face[2]] - vertices[face[0]])
+    normal = normal / np.linalg.norm(normal)
+
+    # check if point is on the same plane as the face
+    if np.abs(normal.dot(point - vertices[face[0]])) > 0.01:
+        return False
+    
+    # check if point is inside the face https://math.stackexchange.com/a/28552
+    a = vertices[face[0]]
+    b = vertices[face[1]]
+    c = vertices[face[2]]
+
+    ab = b - a
+    ac = c - a
+
+    pa = a - point
+    pb = b - point
+    pc = c - point
+
+    area = np.linalg.norm(np.cross(ab, ac)) / 2
+    alpha = np.linalg.norm(np.cross(pb, pc)) / (2 * area)
+    beta = np.linalg.norm(np.cross(pc, pa)) / (2 * area)
+    gamma = 1 - alpha - beta
+
+    if alpha < 0 or alpha > 1:
+        return False
+    
+    if beta < 0 or beta > 1:
+        return False
+    
+    if gamma < 0 or gamma > 1:
+        return False
+    
+    if np.abs(alpha + beta + gamma - 1) > 0.01:
+        return False
+    
+    return True
+
+def cut_face_in_three(faces, face_id, new_vert_id):
+    face_to_cut = faces[face_id]
+
+    first_half = np.copy(face_to_cut)
+    second_half = np.copy(face_to_cut)
+    third_half = np.copy(face_to_cut)
+
+    first_half[np.nonzero(first_half == face_to_cut[0])[0][0]] = new_vert_id
+    second_half[np.nonzero(second_half == face_to_cut[1])[0][0]] = new_vert_id
+    third_half[np.nonzero(third_half == face_to_cut[2])[0][0]] = new_vert_id
+
+    faces = np.delete(faces, [face_id], 0)
+    faces = np.append(faces, np.array([first_half, second_half, third_half]), axis=0)
+
+    return faces
+
+
+def insert_point_into_mesh(vertices, faces, point):
+    # check if point is already in vertices
+    for i in range(len(vertices)):
+        if np.linalg.norm(vertices[i] - point) < 0.01:
+            return i, vertices, faces
+        
+    vertices = np.append(vertices, [point], axis = 0)
+    new_vert_id = len(vertices) - 1
+
+    # check if point is on an edge
+    cut_edge = find_cut_edge_vertex_ids(vertices, faces, point)
+    if cut_edge is not None:
+        cut_faces = find_faces_shared_by_cut_edge(cut_edge, faces)
+        faces = cut_faces_in_two(faces, cut_faces, cut_edge, new_vert_id)
+
+        return new_vert_id, vertices, faces
+
+    # check if point is inside a face
+    for i in range(len(faces)):
+        f = faces[i]
+        if is_point_inside_face(vertices, f, point):
+            faces = cut_face_in_three(faces, i, new_vert_id)
+            return new_vert_id, vertices, faces
+        
+    print("ERROR: point is not on an edge or inside a face")
+    return -1, vertices, faces
+
 def get_cut_faces(faces, face_id, cut_edge_vertices, new_vert_id):
   face_to_cut = faces[face_id]
 
