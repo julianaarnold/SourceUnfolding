@@ -107,7 +107,7 @@ def insert_point_into_mesh(vertices, faces, point):
     cut_edge = find_cut_edge_vertex_ids(vertices, faces, point)
     if cut_edge is not None:
         cut_faces = find_faces_shared_by_cut_edge(cut_edge, faces)
-        faces = cut_faces_in_two(faces, cut_faces, cut_edge, new_vert_id)
+        faces, mapping = cut_faces_in_two(faces, cut_faces, cut_edge, new_vert_id)
 
         return new_vert_id, vertices, faces
 
@@ -140,7 +140,13 @@ def cut_faces_in_two(faces, shared_face_ids, cut_edge_vertices, new_vert_id):
   faces = np.append(faces, cut_a, axis=0)
   faces = np.append(faces, cut_b, axis=0)
 
-  return faces
+  replacement_dict = {}
+  replacement_dict[len(faces) - 4] = shared_face_ids[0]
+  replacement_dict[len(faces) - 3] = shared_face_ids[0]
+  replacement_dict[len(faces) - 2] = shared_face_ids[1]
+  replacement_dict[len(faces) - 1] = shared_face_ids[1]
+
+  return faces, replacement_dict
 
 def add_edges_from_mesh(graph, faces):
     face_adjacency_matrix, _ = igl.triangle_triangle_adjacency(faces)

@@ -16,7 +16,7 @@ class StarUnfolding(BasicUnfolding):
     def execute(self):
         i, verts, faces = insert_point_into_mesh(self.vertices, self.faces, self.point)
         assert i != -1
-        self.source_face_id = i
+        self.source_point_id = i
         self.vertices = verts
         self.faces = faces
 
@@ -29,13 +29,15 @@ class StarUnfolding(BasicUnfolding):
         
         paths_indices = []
 
+        self.face_mapping = {}
+
         num_vertices = len(self.vertices)
         for target_id in range(num_vertices):
-            if target_id == self.source_face_id:
+            if target_id == self.source_point_id:
                 continue
   
             geoalg = geodesic.PyGeodesicAlgorithmExact(self.vertices, self.faces)
-            _, path = geoalg.geodesicDistance(self.source_face_id, target_id)
+            _, path = geoalg.geodesicDistance(self.source_point_id, target_id)
 
             assert len(path) >= 2
 
@@ -47,11 +49,13 @@ class StarUnfolding(BasicUnfolding):
                 self.vertices = np.append(self.vertices, [v], axis = 0)
                 cut_edge = find_cut_edge_vertex_ids(self.vertices, self.faces, v)
                 cut_faces = find_faces_shared_by_cut_edge(cut_edge, self.faces)
-                self.faces = cut_faces_in_two(self.faces, cut_faces, cut_edge, len(self.vertices) - 1)
+                self.faces, mapping = cut_faces_in_two(self.faces, cut_faces, cut_edge, len(self.vertices) - 1)#
+
+                self.face_mapping.update(mapping)
 
                 path_indices.append(len(self.vertices) - 1)
 
-            path_indices.append(self.source_face_id)
+            path_indices.append(self.source_point_id)
             paths_indices.append(path_indices)
 
             added_vertices = np.append(added_vertices, path[1:-1], axis = 0)
@@ -66,4 +70,11 @@ class StarUnfolding(BasicUnfolding):
 
                 self.faces_to_separate.append(find_faces_shared_by_cut_edge([v_a, v_b], self.faces))
 
-        
+    def find_source_point_images(self):
+        source_point_images = []
+
+        for face_id, face in enumerate(self.faces):
+            if self.source_point_id in face:
+                source_point_images.append(self.unfolded_polygons[face_id][np.where(face == self.source_point_id)[0][0]])
+
+        return np.array(source_point_images)             

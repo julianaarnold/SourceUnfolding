@@ -11,9 +11,9 @@ from source_unfolding import SourceUnfolding
 raw_vertices, raw_faces = igl.read_triangle_mesh("./meshes/cube.stl")
 vertices, faces = igl.remove_duplicates(raw_vertices, raw_faces, 0.00001)
 
-unfolding = StarUnfolding(vertices, faces, [0, 0, 1])
+unfolding = SourceUnfolding(vertices, faces, [0, 1, 1])
 
-plot_polygons(unfolding.unfolded_polygons.values())
-plot_cut_edges(unfolding.unfolded_polygons, unfolding.faces, unfolding.faces_to_separate)
+# plot_polygons(unfolding.unfolded_polygons.values())
+# plot_cut_edges(unfolding.unfolded_polygons, unfolding.faces, unfolding.faces_to_separate)
 
-plt.show()
+# plt.show()
