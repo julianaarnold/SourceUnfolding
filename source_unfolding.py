@@ -110,34 +110,42 @@ class SourceUnfolding(BasicUnfolding):
                         return (np.linalg.norm(line1[0] - line2[0]) < 0.0001 and np.linalg.norm(line1[1] - line2[1]) 
                             < 0.0001 or np.linalg.norm(line1[0] - line2[1]) < 0.0001 and np.linalg.norm(line1[1] - line2[0]) < 0.0001)
 
-                    if p.intersects(line):
-                        intersected_line = np.array(p.intersection(line).coords)
+                    try:
+                        if p.intersects(line):
+                            intersected_line = np.array(p.intersection(line).coords)
 
-                        if len(intersected_line) == 1:
-                            continue
+                            if len(intersected_line) == 1:
+                                continue
 
-                        # check for duplicate lines
-                        duplicate = False
-                        for key1, value in intersected_segments.items():
-                            for segment in value:
-                                if same_line(segment, intersected_line):
-                                    duplicate = True
+                            # check for duplicate lines
+                            duplicate = False
+                            for key1, value in intersected_segments.items():
+                                for seg in value:
+                                    if same_line(seg, intersected_line):
+                                        duplicate = True
+                                        break
+
+                                if duplicate:
                                     break
 
                             if duplicate:
-                                break
+                                continue
 
-                        if duplicate:
-                            continue
+                            if not face_id in intersected_segments.keys():
+                                intersected_segments[face_id] = []
 
-                        if not face_id in intersected_segments.keys():
-                            intersected_segments[face_id] = []
+                            intersected_segments[face_id].append(intersected_line)
 
-                        intersected_segments[face_id].append(intersected_line)
-
-                        """# plot intersected line and polygon it was intersected with
-                        plt.plot(intersected_line[:, 0], intersected_line[:, 1], 'r-')
-                        plot_polygons([star_unfolding.unfolded_polygons[key]])"""
+                            """# plot intersected line and polygon it was intersected with
+                            plt.plot(intersected_line[:, 0], intersected_line[:, 1], 'r-')
+                            plot_polygons([star_unfolding.unfolded_polygons[key]])"""
+                    except Exception as e:
+                        # do not deal with this exception for now
+                        print(e)
+                        print("exception occured for face: ", face)
+                        print("segment: ", segment)
+                        
+                        
 
 
 
@@ -156,7 +164,10 @@ class SourceUnfolding(BasicUnfolding):
         vor = Voronoi(source_images)
         
         finite_segments, infinite_segments = self.compute_voronoi_lines(vor)
-        segments = np.append(np.array(finite_segments), np.array(infinite_segments), axis = 0)
+        segments = np.array(finite_segments + infinite_segments)
+
+        for segment in segments:
+            plt.plot(segment[:, 0], segment[:, 1], 'r-')
 
         plt.show()
 
