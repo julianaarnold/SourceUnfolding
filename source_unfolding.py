@@ -135,10 +135,6 @@ class SourceUnfolding(BasicUnfolding):
                                 intersected_segments[face_id] = []
 
                             intersected_segments[face_id].append(intersected_line)
-
-                            """# plot intersected line and polygon it was intersected with
-                            plt.plot(intersected_line[:, 0], intersected_line[:, 1], 'r-')
-                            plot_polygons([star_unfolding.unfolded_polygons[key]])"""
                     except Exception as e:
                         # do not deal with this exception for now
                         print(e)
@@ -173,8 +169,6 @@ class SourceUnfolding(BasicUnfolding):
 
         intersected_segments = self.limit_to_star_unfolding(segments, star_unfolding)
 
-        print("intersected segments: ", intersected_segments)
-
         # plot lines
         for key, value in intersected_segments.items():
             for segment in value:
@@ -202,9 +196,6 @@ class SourceUnfolding(BasicUnfolding):
                 projected_segments.append(projected_segment)
 
         self.cut_locus = np.array(projected_segments)
-        
-
-        print("applied transformations: ", star_unfolding.applied_transformations)
 
         # project unfolded polygons back to 3D
         projected_polygons = []
@@ -233,9 +224,4 @@ class SourceUnfolding(BasicUnfolding):
 
         # plot the original mesh
         plot_mesh(self.original_vertices, self.original_faces, ax)
-
-        #plot_polygons_3d(projected_polygons, ax)
-        
         plt.show()
-
-        self.cut_locus 
