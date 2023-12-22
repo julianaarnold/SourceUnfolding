@@ -29,7 +29,10 @@ class StarUnfolding(BasicUnfolding):
         
         paths_indices = []
 
-        self.face_mapping = {}
+        self.face_mapping = []
+
+        for i in range(len(self.faces)):
+            self.face_mapping.append(i)
 
         num_vertices = len(self.vertices)
         for target_id in range(num_vertices):
@@ -51,7 +54,18 @@ class StarUnfolding(BasicUnfolding):
                 cut_faces = find_faces_shared_by_cut_edge(cut_edge, self.faces)
                 self.faces, mapping = cut_faces_in_two(self.faces, cut_faces, cut_edge, len(self.vertices) - 1)#
 
-                self.face_mapping.update(mapping)
+                original_face_0 = self.face_mapping[cut_faces[0]]
+                original_face_1 = self.face_mapping[cut_faces[1]]
+                
+                # remove the original face from the face mapping
+                self.face_mapping = self.face_mapping[:cut_faces[0]] + self.face_mapping[cut_faces[0]+1:]
+                self.face_mapping = self.face_mapping[:cut_faces[1]-1] + self.face_mapping[cut_faces[1]:]
+
+                # add the new faces to the face mapping
+                self.face_mapping.append(original_face_0)
+                self.face_mapping.append(original_face_0)
+                self.face_mapping.append(original_face_1)
+                self.face_mapping.append(original_face_1)
 
                 path_indices.append(len(self.vertices) - 1)
 

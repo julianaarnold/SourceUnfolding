@@ -132,6 +132,34 @@ def get_cut_faces(faces, face_id, cut_edge_vertices, new_vert_id):
 
   return np.array([first_half, second_half])
 
+def try_merge_polygons_2d(a, b):
+    # check if the two polygons have a common edge
+    # edge, means that two vertices have a distance of 0
+
+    for i in range(len(a)):
+        p1 = a[i]
+        p2 = a[(i+1) % len(a)]
+
+        for j in range(len(b)):
+            p3 = b[j]
+            p4 = b[(j+1) % len(b)]
+
+            if np.linalg.norm(p1 - p3) < 0.01 and np.linalg.norm(p2 - p4) < 0.01:
+                print("WEIRD, THIS SHOULD NOT HAPPEN")
+            
+            if np.linalg.norm(p1 - p4) < 0.01 and np.linalg.norm(p2 - p3) < 0.01:
+                a = np.array(a)
+                a = np.append(a[(i+1) % len(a) + 1:], a[:(i+1) % len(a) + 1], axis=0)
+
+                b = np.array(b)
+                b = np.append(b[(j+1) % len(b) + 1:], b[:(j+1) % len(b) + 1], axis=0)
+
+                return np.append(a[:-1], b[:-1], axis=0)
+            
+    return None
+                
+    
+
 def cut_faces_in_two(faces, shared_face_ids, cut_edge_vertices, new_vert_id):
   cut_a = get_cut_faces(faces, shared_face_ids[0], cut_edge_vertices, new_vert_id)
   cut_b = get_cut_faces(faces, shared_face_ids[1], cut_edge_vertices, new_vert_id)
@@ -184,6 +212,19 @@ def get_2d_projection(face_normal):
 
     rotation_matrix = get_rotation_matrix(rotation_axis, angle)
     return discard_z_matrix.dot(rotation_matrix)
+
+def get_2d_projection_as_4x4_matrix(face_normal, p):
+
+    xy_plane_normal = np.array([0,0,1])  # aka 'the z-axis'
+    rotation_axis = np.cross(face_normal, xy_plane_normal)
+    angle = np.arccos(np.clip(np.dot(xy_plane_normal, face_normal), -1.0, 1.0))
+    rotation_matrix = get_rotation_matrix(rotation_axis, angle)
+    
+    transform_matrix = np.eye(4)
+    transform_matrix[:3, :3] = rotation_matrix
+    transform_matrix[:3, 3] = -p
+
+    return transform_matrix
 
 
 def draw_polygons(polygons):

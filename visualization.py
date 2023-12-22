@@ -31,3 +31,19 @@ def plot_cut_edges(polygons, faces, faces_to_separate):
 
     for edge in edges_to_plot:
         plt.plot([edge[0][0], edge[1][0]], [edge[0][1], edge[1][1]], ls='-', color='red', linewidth=2.0)
+
+    
+
+def plot_polygons_3d(polygons, ax):
+    for polygon in polygons:
+        polygon = np.array(polygon)
+
+        # plot lines in 3D
+        for i in range(len(polygon)):
+            ax.plot([polygon[i][0], polygon[(i+1) % len(polygon)][0]], [polygon[i][1], polygon[(i+1) % len(polygon)][1]], [polygon[i][2], polygon[(i+1) % len(polygon)][2]], ls='-', color='black', linewidth=1.0)
+
+
+
+def plot_mesh(vertices, faces, ax):
+    polygons = [vertices[face] for face in faces]
+    plot_polygons_3d(polygons, ax)
