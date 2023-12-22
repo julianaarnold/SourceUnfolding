@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 from shapely.geometry import Polygon, LineString
 from scipy.spatial import Voronoi, voronoi_plot_2d
 
+from pygeodesic import geodesic
+
 from basic_unfolding import BasicUnfolding
 from star_unfolding import StarUnfolding
 
@@ -29,6 +31,57 @@ class SourceUnfolding(BasicUnfolding):
 
     def cut_source_unfolding(self):
         self.find_cut_locus()
+
+        self.faces_to_separate = []
+
+        cut_paths = []
+        for segment in self.cut_locus:
+            edge_verts = []
+            for p in segment:
+                i, verts, faces = insert_point_into_mesh(self.vertices, self.faces, p)
+
+                assert i != -1
+                self.vertices = verts
+                self.faces = faces
+
+                edge_verts.append(i)
+
+            # there could be some edge between the two vertices
+            geoalg = geodesic.PyGeodesicAlgorithmExact(self.vertices, self.faces)
+            _, path = geoalg.geodesicDistance(edge_verts[0], edge_verts[1])
+
+            if len(path) <= 1:
+                continue
+
+            print("path: ", path)
+
+            if len(path) > 2:
+                path_indices = []
+                path_indices.append(edge_verts[1])
+                # cut the edge
+                for v in path[1:-1]:
+                    self.vertices = np.append(self.vertices, [v], axis = 0)
+                    cut_edge = find_cut_edge_vertex_ids(self.vertices, self.faces, v)
+                    cut_faces = find_faces_shared_by_cut_edge(cut_edge, self.faces)
+                    self.faces, mapping = cut_faces_in_two(self.faces, cut_faces, cut_edge, len(self.vertices) - 1)
+                    path_indices.append(len(self.vertices) - 1)
+
+                path_indices.append(edge_verts[0])
+                edge_verts = path_indices
+
+            cut_paths.append(edge_verts)
+
+        for path in cut_paths:
+            # find faces shared by the two vertices
+            for i in range(len(path) - 1):
+                cut_faces = find_faces_shared_by_cut_edge([path[i], path[i+1]], self.faces)
+                self.faces_to_separate.append(cut_faces)
+        
+        print("faces to separate: ", self.faces_to_separate)
+            
+            
+            
+            
 
     def compute_voronoi_lines(self, vor):
         # copied from scipy.spatial.voronoi_plot_2d
