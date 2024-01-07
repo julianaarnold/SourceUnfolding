@@ -59,7 +59,7 @@ class BasicUnfolding:
             for i in range(3):
                 #face_coordinates[i] = projection_to_2d.dot(face_coordinates[i])  # TODO apply 2D projection to each vertex
                 proj = apply_4x4_matrix_to_3d_point(applied_transformations, face_coordinates[i])
-
+                
                 # check if the projection is correct
                 assert np.abs(proj[2]) < EPSILON
 

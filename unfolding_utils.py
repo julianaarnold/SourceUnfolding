@@ -5,7 +5,7 @@ import networkx as nx
 import drawsvg as draw
 from scipy.spatial.transform import Rotation
 
-EPSILON = 0.00001
+EPSILON = 0.0001
 
 def is_vertex_on_line_segment(v, a, b):
   if np.linalg.norm(np.cross(b-a, v-a)) > EPSILON:

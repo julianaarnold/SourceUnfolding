@@ -183,7 +183,7 @@ class SourceUnfolding(BasicUnfolding):
         for segment in segments:
             for key, faces in merged_faces.items():
                 for face_id, face in faces:
-                    p = Polygon(face)
+                    p = Polygon(face).buffer(EPSILON/100)
                     line = LineString(segment)
 
                     def same_line(line1, line2):
@@ -192,16 +192,21 @@ class SourceUnfolding(BasicUnfolding):
 
                     try:
                         if p.intersects(line):
-                            intersected_line = np.array(p.intersection(line).coords)
-
+                            intersected_geometry = p.intersection(line)
+                            intersected_line = np.array(intersected_geometry.coords)
+                            
                             if len(intersected_line) == 1:
+                                continue
+
+                            # check if the intersection is a point
+                            if intersected_geometry.length < EPSILON:
                                 continue
 
                             # check for duplicate lines
                             duplicate = False
                             for key1, value in intersected_segments.items():
                                 for seg in value:
-                                    if False and same_line(seg, intersected_line):
+                                    if same_line(seg, intersected_line):
                                         duplicate = True
                                         break
 
