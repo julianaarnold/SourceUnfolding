@@ -269,9 +269,22 @@ def dihedral_angle(vertices, faces, face_a_id, face_b_id):
     return np.arccos(np.clip(np.dot(face_normals[face_a_id], face_normals[face_b_id]), -1.0, 1.0))
 
 def delete_cut_line_edges(graph, faces_to_separate):
+  already_deleted = []
+
   for pair in faces_to_separate:
+    # check if edge was already deleted
+    is_already_deleted = False
+    for deleted_pair in already_deleted:
+      if pair[0] in deleted_pair and pair[1] in deleted_pair:
+        is_already_deleted = True
+        break
+      
+    if is_already_deleted:
+        continue
+
     assert graph.has_edge(pair[0], pair[1])
     graph.remove_edge(pair[0], pair[1])
+    already_deleted.append(pair)
 
   return graph
 

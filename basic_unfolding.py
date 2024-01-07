@@ -21,6 +21,7 @@ class BasicUnfolding:
         mesh_graph = graph_from_mesh(self.faces)
 
         mesh_graph = delete_cut_line_edges(mesh_graph, self.faces_to_separate)
+
         parent_dict = nx.dfs_predecessors(mesh_graph, source=source_face_id)
         parent_dict[source_face_id] = None  # add the source face, as networkX is not doing this by default
 
