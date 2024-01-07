@@ -15,8 +15,9 @@ from unfolding_utils import *
 from visualization import *
 
 class SourceUnfolding(BasicUnfolding):
-    def __init__(self, vertices, faces, source_point):
+    def __init__(self, vertices, faces, source_point, show_intermediate_results=False):
         self.source_point = np.array(source_point)
+        self.debug = show_intermediate_results
         super().__init__(vertices, faces)
 
     def execute(self):
@@ -54,8 +55,6 @@ class SourceUnfolding(BasicUnfolding):
             if len(path) <= 1:
                 continue
 
-            print("path: ", path)
-
             if len(path) > 2:
                 path_indices = []
                 path_indices.append(edge_verts[1])
@@ -80,13 +79,8 @@ class SourceUnfolding(BasicUnfolding):
                     cut_faces = find_faces_shared_by_cut_edge([path[i], path[i+1]], self.faces)
                     self.faces_to_separate.append(cut_faces)
                 except:
-                    print(path)
-        
-        print("faces to separate: ", self.faces_to_separate)
-            
-            
-            
-            
+                    if (self.debug):
+                        print(path)
 
     def compute_voronoi_lines(self, vor):
         # copied from scipy.spatial.voronoi_plot_2d
@@ -117,10 +111,41 @@ class SourceUnfolding(BasicUnfolding):
 
         return finite_segments, infinite_segments
     
+    def _debug_plot_point_images_with_voronoi(self, source_images, star_unfolding, finite_segments, infinite_segments):
+        if not self.debug:
+            return
+        
+        plt.plot(source_images[:, 0], source_images[:, 1], 'ro')
+        plot_polygons(star_unfolding.unfolded_polygons.values())
+
+        # plot finite segments as solid lines and infinite segments as dashed lines
+        for segment in np.array(finite_segments):
+            plt.plot(segment[:, 0], segment[:, 1], 'r-')
+
+        for segment in np.array(infinite_segments):
+            plt.plot(segment[:, 0], segment[:, 1], 'r--')
+
+        plt.gca().set_aspect('equal', adjustable='box')
+        plt.show()
+
+    def _debug_plot_cut_locus_3d(self):
+        if not self.debug:
+            return
+        
+        fig = plt.figure()
+        ax = fig.add_subplot(projection='3d')
+        for segment in self.cut_locus:
+            ax.plot(segment[:, 0], segment[:, 1], segment[:, 2], 'r-', linewidth=5.0)
+
+        plt.gca().set_aspect('equal', adjustable='box')
+
+        # plot the original mesh
+        plot_mesh(self.original_vertices, self.original_faces, ax)
+        plt.show()
+
+    
     def limit_to_star_unfolding(self, segments, star_unfolding):
         faces_to_unfolded = {}
-
-        print(star_unfolding.face_mapping)
 
         for key, value in star_unfolding.unfolded_polygons.items():
             original_face = star_unfolding.face_mapping[key]
@@ -152,10 +177,6 @@ class SourceUnfolding(BasicUnfolding):
                     merged_faces[key] = []
 
                 merged_faces[key].append((face_id, merged_face))
-
-        for key, faces in merged_faces.items():
-            plot_polygons([face[1] for face in faces])
-
 
         intersected_segments = {}
         for segment in segments:
@@ -199,10 +220,10 @@ class SourceUnfolding(BasicUnfolding):
                         print("exception occured for face: ", face)
                         print("segment: ", segment)
                         
-        plt.show()
-        explode_polygons_with_intersected_segments(merged_faces, intersected_segments)
 
-
+        if self.debug:
+            plt.gca().set_aspect('equal', adjustable='box')
+            explode_polygons_with_intersected_segments(merged_faces, intersected_segments)
 
         return intersected_segments
 
@@ -212,33 +233,15 @@ class SourceUnfolding(BasicUnfolding):
 
         source_images = star_unfolding.find_source_point_images()
 
-        plt.plot(source_images[:, 0], source_images[:, 1], 'ro')
-        plot_polygons(star_unfolding.unfolded_polygons.values())
-
         # plot voronoi diagram of source images
         vor = Voronoi(source_images)
         
         finite_segments, infinite_segments = self.compute_voronoi_lines(vor)
         segments = np.array(finite_segments + infinite_segments)
 
-        for segment in segments:
-            plt.plot(segment[:, 0], segment[:, 1], 'r-')
-
-        plt.show()
+        self._debug_plot_point_images_with_voronoi(source_images, star_unfolding, finite_segments, infinite_segments)
 
         intersected_segments = self.limit_to_star_unfolding(segments, star_unfolding)
-
-        # plot lines
-        for key, value in intersected_segments.items():
-            for segment in value:
-                plt.plot(segment[:, 0], segment[:, 1], 'r-')
-
-        # set axis limits
-        plt.xlim(-6, 6)
-        plt.ylim(-6, 6)
-
-        plt.show()
-
         
         # project the segments to 3D
         projected_segments = []
@@ -256,35 +259,4 @@ class SourceUnfolding(BasicUnfolding):
 
         self.cut_locus = np.array(projected_segments)
 
-        # project unfolded polygons back to 3D
-        projected_polygons = []
-        for key, value in star_unfolding.unfolded_polygons.items():
-            # to fold, use inverse of applied transformation from unfolding
-            folding_matrix = star_unfolding.applied_transformations[key]
-
-            # make sure the matrix is invertible
-            assert np.linalg.cond(folding_matrix) < 1/sys.float_info.epsilon
-            folding_matrix = np.linalg.inv(folding_matrix)
-
-            projected_polygon = []
-            for point in value:
-                projected_polygon.append(apply_4x4_matrix_to_3d_point(folding_matrix, np.append(point, 0)))
-
-            projected_polygons.append(projected_polygon)
-
-        projected_polygons = np.array(projected_polygons)
-
-        # plot the projected segments in 3D
-        fig = plt.figure()
-        ax = fig.add_subplot(projection='3d')
-        for segment in self.cut_locus:
-            ax.plot(segment[:, 0], segment[:, 1], segment[:, 2], 'r-', linewidth=2.0)
-        
-        ax.set_xlim(-1, 1)
-        ax.set_ylim(-1, 1)
-        ax.set_zlim(-1, 1)
-
-        # plot the original mesh
-        plot_mesh(self.original_vertices, self.original_faces, ax)
-
-        plt.show()
+        self._debug_plot_cut_locus_3d()

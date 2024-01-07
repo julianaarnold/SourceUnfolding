@@ -13,7 +13,7 @@ def plot_polygons(polygons):
 
 def plot_cut_edges(polygons, faces, faces_to_separate):
     # find the shared vertices foreach [f1, f2] in faces_to_separate
-
+    
     edges_to_plot = []
 
     for f1, f2 in faces_to_separate:
@@ -80,7 +80,7 @@ def explode_polygons_with_intersected_segments(merged_faces, intersected_segment
                     exploded_segment.append(vertex + explosion_vector)
                 
                 exploded_segment = np.array(exploded_segment)
-                plt.plot(exploded_segment[:, 0], exploded_segment[:, 1], ls='-', color='black', linewidth=1.0)
+                plt.plot(exploded_segment[:, 0], exploded_segment[:, 1], 'r-', linewidth=2.0)
 
     plt.show()
 
