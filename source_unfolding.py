@@ -15,9 +15,10 @@ from unfolding_utils import *
 from visualization import *
 
 class SourceUnfolding(BasicUnfolding):
-    def __init__(self, vertices, faces, source_point, show_intermediate_results=False):
+    def __init__(self, vertices, faces, source_point, show_intermediate_results=False, report_errors=False):
         self.source_point = np.array(source_point)
         self.debug = show_intermediate_results
+        self.report_errors = report_errors
         super().__init__(vertices, faces)
 
     def execute(self):
@@ -216,9 +217,10 @@ class SourceUnfolding(BasicUnfolding):
                             intersected_segments[face_id].append(intersected_line)
                     except Exception as e:
                         # do not deal with this exception for now
-                        print(e)
-                        print("exception occured for face: ", face)
-                        print("segment: ", segment)
+                        if self.report_errors:
+                            print(e)
+                            print("exception occured for face: ", face)
+                            print("segment: ", segment)
                         
 
         if self.debug:
