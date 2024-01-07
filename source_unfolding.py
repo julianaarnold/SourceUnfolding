@@ -187,8 +187,8 @@ class SourceUnfolding(BasicUnfolding):
                     line = LineString(segment)
 
                     def same_line(line1, line2):
-                        return (np.linalg.norm(line1[0] - line2[0]) < 0.0001 and np.linalg.norm(line1[1] - line2[1]) 
-                            < 0.0001 or np.linalg.norm(line1[0] - line2[1]) < 0.0001 and np.linalg.norm(line1[1] - line2[0]) < 0.0001)
+                        return (np.linalg.norm(line1[0] - line2[0]) < EPSILON and np.linalg.norm(line1[1] - line2[1]) 
+                            < EPSILON or np.linalg.norm(line1[0] - line2[1]) < EPSILON and np.linalg.norm(line1[1] - line2[0]) < EPSILON)
 
                     try:
                         if p.intersects(line):

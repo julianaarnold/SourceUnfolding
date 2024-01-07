@@ -5,8 +5,10 @@ import networkx as nx
 import drawsvg as draw
 from scipy.spatial.transform import Rotation
 
+EPSILON = 0.00001
+
 def is_vertex_on_line_segment(v, a, b):
-  if np.linalg.norm(np.cross(b-a, v-a)) > 0.0001:
+  if np.linalg.norm(np.cross(b-a, v-a)) > EPSILON:
       return False
 
   AVdotAB = (v - a).dot(b - a)
@@ -43,7 +45,7 @@ def is_point_inside_face(vertices, face, point):
     normal = normal / np.linalg.norm(normal)
 
     # check if point is on the same plane as the face
-    if np.abs(normal.dot(point - vertices[face[0]])) > 0.01:
+    if np.abs(normal.dot(point - vertices[face[0]])) > EPSILON:
         return False
     
     # check if point is inside the face https://math.stackexchange.com/a/28552
@@ -72,7 +74,7 @@ def is_point_inside_face(vertices, face, point):
     if gamma < 0 or gamma > 1:
         return False
     
-    if np.abs(alpha + beta + gamma - 1) > 0.01:
+    if np.abs(alpha + beta + gamma - 1) > EPSILON:
         return False
     
     return True
@@ -97,7 +99,7 @@ def cut_face_in_three(faces, face_id, new_vert_id):
 def insert_point_into_mesh(vertices, faces, point):
     # check if point is already in vertices
     for i in range(len(vertices)):
-        if np.linalg.norm(vertices[i] - point) < 0.01:
+        if np.linalg.norm(vertices[i] - point) < EPSILON:
             return i, vertices, faces
         
     vertices = np.append(vertices, [point], axis = 0)
@@ -144,10 +146,10 @@ def try_merge_polygons_2d(a, b):
             p3 = b[j]
             p4 = b[(j+1) % len(b)]
 
-            if np.linalg.norm(p1 - p3) < 0.01 and np.linalg.norm(p2 - p4) < 0.01:
+            if np.linalg.norm(p1 - p3) < EPSILON and np.linalg.norm(p2 - p4) < EPSILON:
                 print("WEIRD, THIS SHOULD NOT HAPPEN")
             
-            if np.linalg.norm(p1 - p4) < 0.01 and np.linalg.norm(p2 - p3) < 0.01:
+            if np.linalg.norm(p1 - p4) < EPSILON and np.linalg.norm(p2 - p3) < EPSILON:
                 a = np.array(a)
                 a = np.append(a[(i+1) % len(a) + 1:], a[:(i+1) % len(a) + 1], axis=0)
 
@@ -229,7 +231,7 @@ def get_2d_projection_as_4x4_matrix(face_normal, p):
     transform_matrix[2, 3] = -z_offset
 
     # make sure p is on the xy plane
-    assert apply_4x4_matrix_to_3d_point(transform_matrix, p)[2] < 0.0001
+    assert apply_4x4_matrix_to_3d_point(transform_matrix, p)[2] < EPSILON
 
     return transform_matrix
 

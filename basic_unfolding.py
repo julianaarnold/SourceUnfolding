@@ -61,7 +61,7 @@ class BasicUnfolding:
                 proj = apply_4x4_matrix_to_3d_point(applied_transformations, face_coordinates[i])
 
                 # check if the projection is correct
-                assert np.abs(proj[2]) < 0.0001
+                assert np.abs(proj[2]) < EPSILON
 
                 face_coordinates[i] = proj[:2]
 

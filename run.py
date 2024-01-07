@@ -9,7 +9,7 @@ from star_unfolding import StarUnfolding
 from source_unfolding import SourceUnfolding
 
 raw_vertices, raw_faces = igl.read_triangle_mesh("./meshes/pyramid.stl")
-vertices, faces = igl.remove_duplicates(raw_vertices, raw_faces, 0.00001)
+vertices, faces = igl.remove_duplicates(raw_vertices, raw_faces, EPSILON)
 
 unfolding = SourceUnfolding(vertices, faces, [0, 0, -1], show_intermediate_results=True, report_errors=True)
 
