@@ -6,7 +6,7 @@ import drawsvg as draw
 from scipy.spatial.transform import Rotation
 
 def is_vertex_on_line_segment(v, a, b):
-  if np.linalg.norm(np.cross(b-a, v-a)) > 0.01:
+  if np.linalg.norm(np.cross(b-a, v-a)) > 0.0001:
       return False
 
   AVdotAB = (v - a).dot(b - a)
@@ -222,7 +222,14 @@ def get_2d_projection_as_4x4_matrix(face_normal, p):
     
     transform_matrix = np.eye(4)
     transform_matrix[:3, :3] = rotation_matrix
-    transform_matrix[:3, 3] = -p
+
+    # calculate z offset
+    z_offset = np.dot(rotation_matrix, p)[2]
+
+    transform_matrix[2, 3] = -z_offset
+
+    # make sure p is on the xy plane
+    assert apply_4x4_matrix_to_3d_point(transform_matrix, p)[2] < 0.0001
 
     return transform_matrix
 

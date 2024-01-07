@@ -24,7 +24,7 @@ class BasicUnfolding:
         parent_dict = nx.dfs_predecessors(mesh_graph, source=source_face_id)
         parent_dict[source_face_id] = None  # add the source face, as networkX is not doing this by default
 
-        source_face_normal = igl.per_face_normals(self.vertices, self.faces, np.ones((1, 3)))[0]
+        source_face_normal = igl.per_face_normals(self.vertices, self.faces, np.ones((1, 3)))[source_face_id]
         projection_to_2d_4x4 = get_2d_projection_as_4x4_matrix(source_face_normal, self.vertices[self.faces[source_face_id][0]])
 
         for face_id, parent_face_id in parent_dict.items():
@@ -58,6 +58,10 @@ class BasicUnfolding:
             for i in range(3):
                 #face_coordinates[i] = projection_to_2d.dot(face_coordinates[i])  # TODO apply 2D projection to each vertex
                 proj = apply_4x4_matrix_to_3d_point(applied_transformations, face_coordinates[i])
+
+                # check if the projection is correct
+                assert np.abs(proj[2]) < 0.0001
+
                 face_coordinates[i] = proj[:2]
 
             self.unfolded_polygons[face_id] = face_coordinates

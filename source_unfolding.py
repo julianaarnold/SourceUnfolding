@@ -1,3 +1,4 @@
+import sys
 import igl
 import numpy as np
 import networkx as nx
@@ -60,10 +61,11 @@ class SourceUnfolding(BasicUnfolding):
                 path_indices.append(edge_verts[1])
                 # cut the edge
                 for v in path[1:-1]:
-                    self.vertices = np.append(self.vertices, [v], axis = 0)
-                    cut_edge = find_cut_edge_vertex_ids(self.vertices, self.faces, v)
-                    cut_faces = find_faces_shared_by_cut_edge(cut_edge, self.faces)
-                    self.faces, mapping = cut_faces_in_two(self.faces, cut_faces, cut_edge, len(self.vertices) - 1)
+                    #self.vertices = np.append(self.vertices, [v], axis = 0)
+                    #cut_edge = find_cut_edge_vertex_ids(self.vertices, self.faces, v)
+                    #cut_faces = find_faces_shared_by_cut_edge(cut_edge, self.faces)
+                    #self.faces, mapping = cut_faces_in_two(self.faces, cut_faces, cut_edge, len(self.vertices) - 1)
+                    i, self.vertices, self.faces = insert_point_into_mesh(self.vertices, self.faces, v)
                     path_indices.append(len(self.vertices) - 1)
 
                 path_indices.append(edge_verts[0])
@@ -74,8 +76,11 @@ class SourceUnfolding(BasicUnfolding):
         for path in cut_paths:
             # find faces shared by the two vertices
             for i in range(len(path) - 1):
-                cut_faces = find_faces_shared_by_cut_edge([path[i], path[i+1]], self.faces)
-                self.faces_to_separate.append(cut_faces)
+                try:
+                    cut_faces = find_faces_shared_by_cut_edge([path[i], path[i+1]], self.faces)
+                    self.faces_to_separate.append(cut_faces)
+                except:
+                    print(path)
         
         print("faces to separate: ", self.faces_to_separate)
             
@@ -174,7 +179,7 @@ class SourceUnfolding(BasicUnfolding):
                             duplicate = False
                             for key1, value in intersected_segments.items():
                                 for seg in value:
-                                    if same_line(seg, intersected_line):
+                                    if False and same_line(seg, intersected_line):
                                         duplicate = True
                                         break
 
@@ -194,7 +199,8 @@ class SourceUnfolding(BasicUnfolding):
                         print("exception occured for face: ", face)
                         print("segment: ", segment)
                         
-                        
+        plt.show()
+        explode_polygons_with_intersected_segments(merged_faces, intersected_segments)
 
 
 
@@ -255,6 +261,9 @@ class SourceUnfolding(BasicUnfolding):
         for key, value in star_unfolding.unfolded_polygons.items():
             # to fold, use inverse of applied transformation from unfolding
             folding_matrix = star_unfolding.applied_transformations[key]
+
+            # make sure the matrix is invertible
+            assert np.linalg.cond(folding_matrix) < 1/sys.float_info.epsilon
             folding_matrix = np.linalg.inv(folding_matrix)
 
             projected_polygon = []
@@ -271,10 +280,11 @@ class SourceUnfolding(BasicUnfolding):
         for segment in self.cut_locus:
             ax.plot(segment[:, 0], segment[:, 1], segment[:, 2], 'r-', linewidth=2.0)
         
-        ax.set_xlim(-6, 6)
-        ax.set_ylim(-6, 6)
-        ax.set_zlim(-6, 6)
+        ax.set_xlim(-1, 1)
+        ax.set_ylim(-1, 1)
+        ax.set_zlim(-1, 1)
 
         # plot the original mesh
         plot_mesh(self.original_vertices, self.original_faces, ax)
+
         plt.show()
