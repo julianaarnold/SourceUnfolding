@@ -61,10 +61,6 @@ class SourceUnfolding(BasicUnfolding):
                 path_indices.append(edge_verts[1])
                 # cut the edge
                 for v in path[1:-1]:
-                    #self.vertices = np.append(self.vertices, [v], axis = 0)
-                    #cut_edge = find_cut_edge_vertex_ids(self.vertices, self.faces, v)
-                    #cut_faces = find_faces_shared_by_cut_edge(cut_edge, self.faces)
-                    #self.faces, mapping = cut_faces_in_two(self.faces, cut_faces, cut_edge, len(self.vertices) - 1)
                     i, self.vertices, self.faces = insert_point_into_mesh(self.vertices, self.faces, v)
                     path_indices.append(len(self.vertices) - 1)
 
