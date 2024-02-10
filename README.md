@@ -9,7 +9,6 @@ Tested with Python 3.11, does *not* work with 3.12. Older versions *might* work.
 To install, run "pip install -r requirements.txt" in this folder.
 
 
-
 ### Usage
 This repo contains two unfolding implementations: Source Unfolding and Star Unfolding (which is used for Source Unfolding).
 You can get a quick demo of source unfolding by running "run.py".
